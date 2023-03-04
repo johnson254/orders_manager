@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Delivery Note Details</h1>
+  <p><strong>Delivery Note Number:</strong> {{ delivery_note.delivery_note_number }}</p>
+  <p><strong>Supplier:</strong> {{ delivery_note.supplier }}</p>
+  <p><strong>Delivery Date:</strong> {{ delivery_note.delivery_date }}</p>
+
+  <hr>
+
+  <h2>Items</h2>
+  {% if delivery_note.items %}
+    <ul>
+      {% for item in delivery_note.items %}
+        <li>{{ item.product_name }} - Quantity: {{ item.quantity }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No items found.</p>
+  {% endif %}
+{% endblock %}
