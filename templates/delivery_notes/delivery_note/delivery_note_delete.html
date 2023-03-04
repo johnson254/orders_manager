@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Delete Delivery Note {{ delivery_note.pk }}</h1>
+  <form method="POST">
+    {% csrf_token %}
+    <p>Are you sure you want to delete this delivery note?</p>
+    <button type="submit">Yes, delete it</button>
+    <a href="{% url 'delivery_notes:list' %}">No, take me back</a>
+  </form>
+{% endblock %}
