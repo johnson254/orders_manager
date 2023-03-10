@@ -1,58 +1,61 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views import View
+from django.urls import reverse_lazy
+from django.contrib import messages
+
 from .models import DeliveryNote
+from .forms import DeliveryNoteForm
 
-def delivery_note_list(request):
-    delivery_notes = DeliveryNote.get_all_delivery_notes()
-    return render(request, 'delivery_notes/index.html', {'delivery_notes': delivery_notes})
 
-def delivery_note_detail(request, delivery_note_id):
-    delivery_note = DeliveryNote.objects.get(id=delivery_note_id)
-    return render(request, 'delivery_notes/detail.html', {'delivery_note': delivery_note})
+class DeliveryNoteListView(View):
+    def get(self, request):
+        delivery_notes = DeliveryNote.objects.all()
+        return render(request, 'delivery_notes/base.html', {'delivery_notes': delivery_notes})
 
-def delivery_note_create(request):
-    if request.method == 'POST':
-        delivery_note_number = request.POST['delivery_note_number']
-        date = request.POST['date']
-        invoice_number = request.POST['invoice_number']
-        image = request.FILES['image']
 
-        delivery_note = DeliveryNote(
-            delivery_note_number=delivery_note_number,
-            date=date,
-            invoice_number=invoice_number,
-            image=image
-        )
-        delivery_note.save()
-        return redirect('delivery_notes:index')
-    else:
-        return render(request, 'delivery_notes/create.html')
+class DeliveryNoteDetailView(View):
+    def get(self, request, pk):
+        delivery_note = get_object_or_404(DeliveryNote, pk=pk)
+        return render(request, 'delivery_notes/detail.html', {'delivery_note': delivery_note})
 
-def delivery_note_update(request, delivery_note_id):
-    delivery_note = DeliveryNote.objects.get(id=delivery_note_id)
 
-    if request.method == 'POST':
-        delivery_note.delivery_note_number = request.POST['delivery_note_number']
-        delivery_note.date = request.POST['date']
-        delivery_note.invoice_number = request.POST['invoice_number']
+class DeliveryNoteCreateView(View):
+    def get(self, request):
+        form = DeliveryNoteForm()
+        return render(request, 'delivery_notes/delivery_note_create.html', {'form': form})
 
-        if request.FILES:
-            delivery_note.image = request.FILES['image']
+    def post(self, request):
+        form = DeliveryNoteForm(request.POST)
+        if form.is_valid():
+            delivery_note = form.save()
+            messages.success(request, 'Delivery note created successfully.')
+            return redirect('delivery_notes:list')
+        return render(request, 'delivery_notes/delivery_note_create.html', {'form': form})
 
-        delivery_note.save()
-        return redirect('delivery_notes:index')
-    else:
-        return render(request, 'delivery_notes/update.html', {'delivery_note': delivery_note})
 
-def delivery_note_delete(request, delivery_note_id):
-    delivery_note = DeliveryNote.objects.get(id=delivery_note_id)
-    delivery_note.delete()
-    return redirect('delivery_notes:index')
+class DeliveryNoteUpdateView(View):
+    def get(self, request, pk):
+        delivery_note = get_object_or_404(DeliveryNote, pk=pk)
+        form = DeliveryNoteForm(instance=delivery_note)
+        return render(request, 'delivery_notes/update.html', {'form': form})
 
-def search_delivery_notes(request):
-    if request.method == 'POST':
-        query = request.POST['query']
-        delivery_notes = DeliveryNote.search_delivery_note_by_number(query)
-        return render(request, 'delivery_notes/index.html', {'delivery_notes': delivery_notes})
-    else:
-        return redirect('delivery_notes:index')
+    def post(self, request, pk):
+        delivery_note = get_object_or_404(DeliveryNote, pk=pk)
+        form = DeliveryNoteForm(request.POST, instance=delivery_note)
+        if form.is_valid():
+            delivery_note = form.save()
+            messages.success(request, 'Delivery note updated successfully.')
+            return redirect('delivery_notes:list')
+        return render(request, 'delivery_notes/update.html', {'form': form})
+
+
+class DeliveryNoteDeleteView(View):
+    def get(self, request, pk):
+        delivery_note = get_object_or_404(DeliveryNote, pk=pk)
+        return render(request, 'delivery_notes/delete.html', {'delivery_note': delivery_note})
+
+    def post(self, request, pk):
+        delivery_note = get_object_or_404(DeliveryNote, pk=pk)
+        delivery_note.delete()
+        messages.success(request, 'Delivery note deleted successfully.')
+        return redirect('delivery_notes:list')
