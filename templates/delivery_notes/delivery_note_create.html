@@ -1,10 +1,40 @@
-{% extends "base.html" %}
+{% extends 'index.html' %}
 
 {% block content %}
-  <h1>Create Delivery Note</h1>
-  <form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save</button>
-  </form>
+  <h1>Delivery Notes</h1>
+  <a href="{% url 'delivery_notes:delivery_note_create' %}" class="btn btn-primary mb-2">Create Delivery Note</a>
+  
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Delivery Note Number</th>
+        <th scope="col">Date Delivered</th>
+        <th scope="col">Invoice Number</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for delivery_note in delivery_notes %}
+        <tr>
+          <th scope="row">{{ delivery_note.id }}</th>
+          <td>{{ delivery_note.delivery_note_number }}</td>
+          <td>{{ delivery_note.date_delivered }}</td>
+          <td>{{ delivery_note.invoice_number }}</td>
+          <td>
+            <a href="{% url 'delivery_note_detail' delivery_note.id %}" class="btn btn-primary">Details</a>
+            <a href="{% url 'delivery_note_update' delivery_note.id %}" class="btn btn-secondary">Edit</a>
+            <form action="{% url 'delivery_note_delete' delivery_note.id %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5">No delivery notes found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}
